@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)file:///C:/Users/babay/Downloads/attendance_2.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance System</title>
+<link href="./Attendance System v2_files/css2" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0,229,160,0.12);
+    --warn: #ff6b35;
+    --warn-dim: rgba(255,107,53,0.12);
+    --text: #e8eaf0;
+    --muted: #5a6070;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+
+  header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .logo-text { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+
+  .live-clock {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* Stats */
+  .stats-bar {
+    display: -webkit-flex;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    -webkit-flex: 1 1 150px;
+    flex: 1 1 150px;
+    overflow: hidden;
+  }
+
+  .stat-card.warn   { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.05); }
+  .stat-card.accent { border-color: rgba(0,229,160,0.3);  background: rgba(0,229,160,0.04); }
+
+  .stat-label {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+
+  .stat-value { font-size: 38px; font-weight: 800; line-height: 1; }
+  .stat-value.warn   { color: var(--warn); }
+  .stat-value.accent { color: var(--accent); }
+
+  /* Layout */
+  .main-grid {
+    display: -webkit-flex;
+    display: flex;
+    gap: 24px;
+    -webkit-align-items: flex-start;
+    align-items: flex-start;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+  }
+
+  .left-col {
+    -webkit-flex: 0 0 340px;
+    flex: 0 0 340px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 260px;
+  }
+
+  .right-col {
+    -webkit-flex: 1 1 400px;
+    flex: 1 1 400px;
+    min-width: 0;
+  }
+
+  /* Panel */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+  .panel-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .panel-body { padding: 24px; }
+
+  .field-label {
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+
+  .input-row {
+    display: -webkit-flex;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  input[type="text"] {
+    -webkit-flex: 1; flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-transition: border-color 0.2s;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::-webkit-input-placeholder { color: var(--muted); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    -webkit-transition: all 0.15s;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    -webkit-appearance: none;
+    appearance: none;
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-primary { background: var(--accent); color: #0d0f14; }
+  .btn-primary:hover { background: #00ffb3; -webkit-transform: translateY(-1px); transform: translateY(-1px); }
+  .btn-primary:active { -webkit-transform: translateY(0); transform: translateY(0); }
+
+  .btn-sign-out {
+    background: transparent;
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    font-size: 12px; padding: 6px 12px;
+  }
+  .btn-sign-out:hover { background: var(--warn-dim); }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px; padding: 9px 16px;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  .btn-import {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px; padding: 9px 16px;
+  }
+  .btn-import:hover { border-color: #7c85ff; color: #7c85ff; background: rgba(124,133,255,0.1); }
+
+  /* IO Bar */
+  .io-bar {
+    display: -webkit-flex;
+    display: flex;
+    gap: 10px;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    -webkit-align-items: center;
+    align-items: center;
+  }
+
+  .io-bar-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-right: 6px;
+  }
+
+  .io-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+  /* Activity */
+  .activity-list {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .activity-list::-webkit-scrollbar { width: 4px; }
+  .activity-list::-webkit-scrollbar-track { background: transparent; }
+  .activity-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .activity-item {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    -webkit-animation: slideIn 0.25s ease;
+    animation: slideIn 0.25s ease;
+  }
+
+  @-webkit-keyframes slideIn {
+    from { opacity:0; -webkit-transform:translateY(-6px); }
+    to   { opacity:1; -webkit-transform:translateY(0); }
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateY(-6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .activity-dot { width:8px; height:8px; border-radius:50%; -webkit-flex-shrink:0; flex-shrink:0; }
+  .dot-in  { background: var(--accent); }
+  .dot-out { background: var(--muted); }
+
+  .activity-name { font-weight:600; -webkit-flex:1; flex:1; }
+  .activity-time { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .activity-type { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .type-in  { color: var(--accent); }
+  .type-out { color: var(--muted); }
+
+  /* Table */
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { width:100%; border-collapse:collapse; }
+  thead tr { border-bottom:1px solid var(--border); }
+  th {
+    padding:12px 16px; text-align:left;
+    font-size:10px; font-weight:700;
+    letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--muted);
+  }
+  td {
+    padding:14px 16px; font-size:14px;
+    border-bottom:1px solid rgba(37,42,56,0.5);
+    vertical-align:middle;
+  }
+  tr:last-child td { border-bottom:none; }
+  tr.over-time { background:rgba(255,107,53,0.06); }
+  tr.over-time td:first-child { border-left:3px solid var(--warn); }
+
+  .name-cell     { font-weight:700; font-size:15px; }
+  .time-cell     { font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); }
+  .duration-cell { font-family:'DM Mono',monospace; font-weight:600; font-size:14px; }
+  .duration-cell.warn { color: var(--warn); }
+  .duration-cell.ok   { color: var(--accent); }
+
+  .badge {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .badge-warn { background: var(--warn-dim); color: var(--warn); }
+  .badge-ok   { background: var(--accent-dim); color: var(--accent); }
+  .badge-dot  { width:5px; height:5px; border-radius:50%; background:currentColor; display:inline-block; }
+
+  .empty-state { text-align:center; padding:48px 24px; color:var(--muted); }
+  .empty-icon  { font-size:36px; margin-bottom:12px; opacity:0.4; }
+  .empty-text  { font-size:14px; font-weight:600; }
+
+  /* Alert */
+  .alert-banner {
+    display: none;
+    -webkit-align-items: center;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,107,53,0.1);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px; font-weight: 600;
+    color: var(--warn);
+    -webkit-animation: pulseBorder 2s ease-in-out infinite;
+    animation: pulseBorder 2s ease-in-out infinite;
+  }
+  .alert-banner.visible { display: -webkit-flex; display: flex; }
+
+  @-webkit-keyframes pulseBorder {
+    0%,100% { border-color: rgba(255,107,53,0.3); }
+    50%      { border-color: rgba(255,107,53,0.7); }
+  }
+  @keyframes pulseBorder {
+    0%,100% { border-color: rgba(255,107,53,0.3); }
+    50%      { border-color: rgba(255,107,53,0.7); }
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 14px; font-weight: 600;
+    color: var(--accent);
+    z-index: 999;
+    -webkit-transform: translateY(80px);
+    transform: translateY(80px);
+    opacity: 0;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  #toast.show  { -webkit-transform: translateY(0); transform: translateY(0); opacity: 1; }
+  #toast.error { border-color: var(--warn); color: var(--warn); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: -webkit-flex; display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 90%; max-width: 480px;
+    -webkit-animation: fadeUp 0.2s ease;
+    animation: fadeUp 0.2s ease;
+  }
+
+  @-webkit-keyframes fadeUp {
+    from { opacity:0; -webkit-transform:translateY(12px); }
+    to   { opacity:1; -webkit-transform:translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .modal-title { font-size:18px; font-weight:800; margin-bottom:8px; }
+  .modal-sub   { font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+
+  .modal-actions {
+    display: -webkit-flex;
+    display: flex;
+    gap: 10px;
+    -webkit-justify-content: flex-end;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+    color: var(--muted); font-size: 14px;
+  }
+  .drop-zone:hover,
+  .drop-zone.drag-over { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .drop-zone-icon { font-size:28px; margin-bottom:8px; }
+
+  .hint-text { font-size:12px; color:var(--muted); line-height:1.5; }
+
+  @media (max-width: 700px) {
+    .left-col  { -webkit-flex: 1 1 100%; flex: 1 1 100%; }
+    .right-col { -webkit-flex: 1 1 100%; flex: 1 1 100%; }
+    .io-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📋</div>
+      <div class="logo-text">Attend<span>Track</span></div>
+    </div>
+    <div class="live-clock" id="clock">23:00:02</div>
+  </header>
+
+  <!-- IO Bar -->
+  <div class="io-bar">
+    <span class="io-bar-label">Data</span>
+    <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-ghost" onclick="exportJSON()">⬇ Export JSON</button>
+    <div class="io-divider"></div>
+    <button class="btn btn-import" onclick="openImport()">⬆ Import JSON</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card accent">
+      <div class="stat-label">Currently Signed In</div>
+      <div class="stat-value accent" id="statActive">0</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-label">Over 30 Minutes</div>
+      <div class="stat-value warn" id="statOver">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Sign-Ins Today</div>
+      <div class="stat-value" id="statTotal">0</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="left-col">
+
+      <div class="panel">
+        <div class="panel-header">Sign In / Out</div>
+        <div class="panel-body">
+          <div class="field-label">Full Name</div>
+          <div class="input-row">
+            <input type="text" id="nameInput" placeholder="Enter name..." autocomplete="off">
+            <button class="btn btn-primary" onclick="signIn()">Sign In</button>
+          </div>
+          <p class="hint-text">To sign out, click <strong style="color:var(--text)">Sign Out</strong> next to the person's name in the dashboard.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">Recent Activity</div>
+        <div class="panel-body">
+          <div class="activity-list" id="activityList">
+            <div class="empty-state">
+              <div class="empty-icon">🕐</div>
+              <div class="empty-text">No activity yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="right-col">
+      <div class="panel">
+        <div class="panel-header">Live Dashboard</div>
+        <div class="panel-body" style="padding:16px 20px">
+          <div class="alert-banner" id="alertBanner">
+            <span>⚠</span>
+            <span id="alertText"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Signed In</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="dashboardBody">
+                <tr><td colspan="5">
+                  <div class="empty-state">
+                    <div class="empty-icon">👥</div>
+                    <div class="empty-text">No one is signed in</div>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">Import Session Data</div>
+    <div class="modal-sub">Upload a previously exported JSON file to restore active sessions. Duplicates will be skipped.</div>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById(&#39;fileInput&#39;).click()">
+      <div class="drop-zone-icon">📂</div>
+      <div>Click to browse or drag &amp; drop a <strong>.json</strong> file here</div>
+    </div>
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileSelect(event)">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeImport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  var sessions    = [];
+  var activityLog = [];
+  var totalToday  = 0;
+  var toastTimer  = null;
+
+  // Clock
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+  function updateClock() {
+    var now = new Date();
+    document.getElementById('clock').textContent =
+      pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function formatTime(d) {
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+
+  function elapsedMin(t) { return (Date.now() - t.getTime()) / 60000; }
+
+  function formatDuration(t) {
+    var total = Math.floor((Date.now() - t.getTime()) / 1000);
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    var s = total % 60;
+    if (h > 0) return h + 'h ' + pad(m) + 'm';
+    return pad(m) + 'm ' + pad(s) + 's';
+  }
+
+  function escHtml(str) {
+    return str
+      .replace(/&/g,  '&amp;')
+      .replace(/</g,  '&lt;')
+      .replace(/>/g,  '&gt;')
+      .replace(/"/g,  '&quot;');
+  }
+
+  // Sign In
+  function signIn() {
+    var input = document.getElementById('nameInput');
+    var name  = input.value.replace(/^\s+|\s+$/g, '');
+    if (!name) { showToast('Please enter a name', true); return; }
+
+    for (var i = 0; i < sessions.length; i++) {
+      if (sessions[i].name.toLowerCase() === name.toLowerCase()) {
+        showToast(name + ' is already signed in', true); return;
+      }
+    }
+
+    sessions.push({ id: Date.now(), name: name, signInTime: new Date() });
+    totalToday++;
+    addActivity(name, 'in');
+    input.value = '';
+    render();
+    showToast('\u2713 ' + name + ' signed in');
+  }
+
+  // Sign Out
+  function signOut(id) {
+    for (var i = 0; i < sessions.length; i++) {
+      if (sessions[i].id === id) {
+        var name = sessions[i].name;
+        sessions.splice(i, 1);
+        addActivity(name, 'out');
+        render();
+        showToast(name + ' signed out');
+        return;
+      }
+    }
+  }
+
+  function addActivity(name, action) {
+    activityLog.unshift({ name: name, action: action, time: new Date() });
+    if (activityLog.length > 50) activityLog.pop();
+  }
+
+  // Render
+  function render() { renderStats(); renderDashboard(); renderActivity(); }
+
+  function renderStats() {
+    var over = 0;
+    var overNames = [];
+    for (var i = 0; i < sessions.length; i++) {
+      if (elapsedMin(sessions[i].signInTime) >= 30) {
+        over++;
+        overNames.push(sessions[i].name);
+      }
+    }
+    document.getElementById('statActive').textContent = sessions.length;
+    document.getElementById('statOver').textContent   = over;
+    document.getElementById('statTotal').textContent  = totalToday;
+
+    var banner = document.getElementById('alertBanner');
+    if (over > 0) {
+      document.getElementById('alertText').textContent =
+        over + ' person' + (over > 1 ? 's' : '') + ' over 30 min: ' + overNames.join(', ');
+      banner.classList.add('visible');
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  function renderDashboard() {
+    var tbody = document.getElementById('dashboardBody');
+    if (sessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">&#128101;</div><div class="empty-text">No one is signed in</div></div></td></tr>';
+      return;
+    }
+
+    // Sort: over-30 first (longest at top), then under-30 (longest at top)
+    var sorted = sessions.slice().sort(function(a, b) {
+      var aOver = elapsedMin(a.signInTime) >= 30;
+      var bOver = elapsedMin(b.signInTime) >= 30;
+      if (aOver !== bOver) return aOver ? -1 : 1;
+      return a.signInTime.getTime() - b.signInTime.getTime();
+    });
+
+    var html = '';
+    for (var i = 0; i < sorted.length; i++) {
+      var s    = sorted[i];
+      var over = elapsedMin(s.signInTime) >= 30;
+      var dur  = formatDuration(s.signInTime);
+      var badge = over
+        ? '<span class="badge badge-warn"><span class="badge-dot"></span>Over 30 min</span>'
+        : '<span class="badge badge-ok"><span class="badge-dot"></span>Active</span>';
+      html +=
+        '<tr class="' + (over ? 'over-time' : '') + '">' +
+        '<td class="name-cell">' + escHtml(s.name) + '</td>' +
+        '<td class="time-cell">' + formatTime(s.signInTime) + '</td>' +
+        '<td class="duration-cell ' + (over ? 'warn' : 'ok') + '">' + dur + '</td>' +
+        '<td>' + badge + '</td>' +
+        '<td><button class="btn btn-sign-out" onclick="signOut(' + s.id + ')">Sign Out</button></td>' +
+        '</tr>';
+    }
+    tbody.innerHTML = html;
+  }
+
+  function renderActivity() {
+    var list  = document.getElementById('activityList');
+    if (activityLog.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128336;</div><div class="empty-text">No activity yet</div></div>';
+      return;
+    }
+    var html  = '';
+    var limit = Math.min(20, activityLog.length);
+    for (var i = 0; i < limit; i++) {
+      var a   = activityLog[i];
+      var isIn = a.action === 'in';
+      html +=
+        '<div class="activity-item">' +
+        '<div class="activity-dot ' + (isIn ? 'dot-in' : 'dot-out') + '"></div>' +
+        '<div class="activity-name">' + escHtml(a.name) + '</div>' +
+        '<div class="activity-time">' + formatTime(a.time) + '</div>' +
+        '<div class="activity-type ' + (isIn ? 'type-in' : 'type-out') + '">' + (isIn ? 'IN' : 'OUT') + '</div>' +
+        '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  // Toast
+  function showToast(msg, isError) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = isError ? 'error show' : 'show';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.className = isError ? 'error' : ''; }, 3000);
+  }
+
+  // Export CSV
+  function exportCSV() {
+    if (sessions.length === 0 && activityLog.length === 0) { showToast('Nothing to export yet', true); return; }
+    var now     = new Date();
+    var dateStr = pad(now.getDate()) + '-' + pad(now.getMonth() + 1) + '-' + now.getFullYear();
+    var csv     = 'Name,Sign-In Time,Duration (mins),Status\n';
+    for (var i = 0; i < sessions.length; i++) {
+      var s   = sessions[i];
+      var min = Math.floor(elapsedMin(s.signInTime));
+      csv += '"' + s.name + '","' + formatTime(s.signInTime) + '",' + min + ',"' + (min >= 30 ? 'Over 30 min' : 'Active') + '"\n';
+    }
+    csv += '\nActivity Log\nName,Action,Time\n';
+    for (var j = 0; j < activityLog.length; j++) {
+      var a = activityLog[j];
+      csv += '"' + a.name + '","' + (a.action === 'in' ? 'Sign In' : 'Sign Out') + '","' + formatTime(a.time) + '"\n';
+    }
+    downloadFile('attendance_' + dateStr + '.csv', csv, 'text/csv');
+    showToast('\u2713 CSV exported');
+  }
+
+  // Export JSON
+  function exportJSON() {
+    if (sessions.length === 0) { showToast('No active sessions to export', true); return; }
+    var out = {
+      exportedAt: new Date().toISOString(),
+      totalToday: totalToday,
+      sessions: [],
+      activityLog: []
+    };
+    for (var i = 0; i < sessions.length; i++) {
+      var s = sessions[i];
+      out.sessions.push({ id: s.id, name: s.name, signInTime: s.signInTime.toISOString() });
+    }
+    for (var j = 0; j < activityLog.length; j++) {
+      var a = activityLog[j];
+      out.activityLog.push({ name: a.name, action: a.action, time: a.time.toISOString() });
+    }
+    var now     = new Date();
+    var dateStr = pad(now.getDate()) + '-' + pad(now.getMonth() + 1) + '-' + now.getFullYear();
+    downloadFile('attendance_' + dateStr + '.json', JSON.stringify(out, null, 2), 'application/json');
+    showToast('\u2713 JSON exported');
+  }
+
+  // Safari-compatible download
+  function downloadFile(filename, content, type) {
+    var blob = new Blob([content], { type: type });
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+      return;
+    }
+    var url = URL.createObjectURL(blob);
+    var a   = document.createElement('a');
+    a.href  = url;
+    a.setAttribute('download', filename);
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 300);
+  }
+
+  // Import
+  function openImport()  { document.getElementById('importModal').classList.add('open'); }
+  function closeImport() { document.getElementById('importModal').classList.remove('open'); }
+
+  function handleFileSelect(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    readImportFile(file);
+    e.target.value = '';
+  }
+
+  function readImportFile(file) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+        if (!data.sessions || !Array.isArray(data.sessions)) { throw new Error('bad'); }
+        var added = 0;
+        for (var i = 0; i < data.sessions.length; i++) {
+          var s = data.sessions[i];
+          var exists = false;
+          for (var j = 0; j < sessions.length; j++) {
+            if (sessions[j].name.toLowerCase() === s.name.toLowerCase()) { exists = true; break; }
+          }
+          if (!exists) {
+            sessions.push({ id: s.id || Date.now(), name: s.name, signInTime: new Date(s.signInTime) });
+            added++;
+          }
+        }
+        if (data.activityLog && Array.isArray(data.activityLog)) {
+          for (var k = 0; k < data.activityLog.length; k++) {
+            var e2 = data.activityLog[k];
+            activityLog.push({ name: e2.name, action: e2.action, time: new Date(e2.time) });
+          }
+          activityLog.sort(function(a, b) { return b.time.getTime() - a.time.getTime(); });
+          if (activityLog.length > 50) activityLog.length = 50;
+        }
+        if (data.totalToday) totalToday = Math.max(totalToday, data.totalToday);
+        closeImport();
+        render();
+        showToast('\u2713 Imported ' + added + ' session' + (added !== 1 ? 's' : ''));
+      } catch (err) {
+        showToast('Invalid JSON file', true);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Drag & drop
+  var dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', function()  { dropZone.classList.remove('drag-over'); });
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    var file = e.dataTransfer.files[0];
+    if (file) readImportFile(file);
+  });
+
+  document.getElementById('importModal').addEventListener('click', function(e) {
+    if (e.target === document.getElementById('importModal')) closeImport();
+  });
+
+  // Enter key
+  document.getElementById('nameInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) signIn();
+  });
+
+  // Tickers
+  setInterval(function() { if (sessions.length) renderDashboard(); }, 1000);
+  setInterval(function() { if (sessions.length) renderStats(); },     10000);
+</script>
+
+
+</body></html>
